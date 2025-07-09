@@ -203,13 +203,11 @@ class LovenseCoordinator(DataUpdateCoordinator):
         self.toy_data = device_info.get("toys", {})
         _LOGGER.info("Device info updated: %s", device_info.get("domain"))
         
-        # Check for new toys in the callback - Always trigger reload to ensure entities appear
+        # Check for new toys in the callback
         new_toys = set(self.toy_data.keys())
         if new_toys - old_toys:
             _LOGGER.info("New toys detected: %s", new_toys - old_toys)
-        
-        # Always trigger platform reload to ensure entities appear on any callback
-        if new_toys:
+            # Trigger platform reload for new entities
             self._trigger_platform_reload()
         
         # Trigger immediate data refresh
@@ -239,7 +237,7 @@ class LovenseCoordinator(DataUpdateCoordinator):
         """Reload platforms to create new entities."""
         try:
             # Instead of forward_entry_setups (which fails if already setup),
-            # use async_update_listeners to trigger entity updates
+            # use async_request_refresh to trigger entity updates
             await self.async_request_refresh()
             self.async_update_listeners()
             _LOGGER.info("✅ Platforms refreshed - entities should appear now")

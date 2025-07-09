@@ -1,6 +1,8 @@
 {
-  "name": "Lovense Standard API",
-  "content_in_root": false,
-  "hide_default_branch": false,
-  "render_readme": true
+  "name": "Lovense Standard API Integration",
+  "description": "Control Lovense devices using the official Standard API",
+  "codeowners": ["@yourusername"],
+  "domains": ["lovense_api"],
+  "homeassistant": "2024.1.0",
+  "iot_class": "Cloud Polling"
 }

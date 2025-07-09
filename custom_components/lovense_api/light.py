@@ -19,7 +19,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     ACTION_VIBRATE,
     CMD_FUNCTION,
+    CONF_STROKE_CONTROL_TYPE,
     DOMAIN,
+    STROKE_CONTROL_BOTH,
+    STROKE_CONTROL_LIGHTS,
     VIBRATE_MAX,
     VIBRATE_MIN,
 )
@@ -60,22 +63,24 @@ async def async_setup_entry(
             # Skip if toy_info is not valid
             continue
             
-        # Main vibration light for all devices
+        # Main speed control light for all devices
         entities.append(LovenseVibrationLight(coordinator, toy_id, toy_info))
         
-        # For Solace Pro, add stroke position lights for voice control
+        # For Solace Pro, add stroke position lights for voice control (if enabled)
         toy_type = toy_info.get("toyType", "").lower()
         toy_name = toy_info.get("name", "").lower()
         if "solace" in toy_type or "solace" in toy_name or "position" in str(toy_info.get("fullFunctionNames", [])).lower():
-            entities.append(LovenseStrokeTopLight(coordinator, toy_id, toy_info))
-            entities.append(LovenseStrokeBottomLight(coordinator, toy_id, toy_info))
+            stroke_control_type = config_entry.data.get(CONF_STROKE_CONTROL_TYPE, "lights")
+            if stroke_control_type in [STROKE_CONTROL_LIGHTS, STROKE_CONTROL_BOTH]:
+                entities.append(LovenseStrokeTopLight(coordinator, toy_id, toy_info))
+                entities.append(LovenseStrokeBottomLight(coordinator, toy_id, toy_info))
     
     if entities:
         async_add_entities(entities, True)
 
 
 class LovenseVibrationLight(CoordinatorEntity, LightEntity):
-    """Representation of a Lovense device vibration as a light entity."""
+    """Representation of a Lovense device speed control as a light entity."""
 
     def __init__(
         self,
@@ -92,8 +97,8 @@ class LovenseVibrationLight(CoordinatorEntity, LightEntity):
         self._attr_effect = None
         
         # Device info
-        self._attr_name = f"{toy_info.get('name', 'Lovense Device')} Vibration"
-        self._attr_unique_id = f"{DOMAIN}_{toy_id}_vibration"
+        self._attr_name = f"{toy_info.get('name', 'Lovense Device')} Speed"
+        self._attr_unique_id = f"{DOMAIN}_{toy_id}_speed"
         
         # Light capabilities
         self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
