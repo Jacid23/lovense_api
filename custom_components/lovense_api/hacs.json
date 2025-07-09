@@ -1,0 +1,8 @@
+{
+  "name": "Lovense Standard API Integration",
+  "description": "Control Lovense devices using the official Standard API",
+  "codeowners": ["@user"],
+  "domains": ["lovense_api"],
+  "homeassistant": "2024.1.0",
+  "iot_class": "Cloud Polling"
+}

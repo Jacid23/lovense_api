@@ -1,0 +1,57 @@
+send_pattern:
+  name: Send Pattern
+  description: Send a custom pattern to a Lovense device
+  target:
+    entity:
+      domain: lovense_api
+  fields:
+    pattern:
+      name: Pattern
+      description: Pattern string (e.g., "20;20;5;20;10")
+      required: true
+      selector:
+        text:
+    interval:
+      name: Interval (ms)
+      description: Interval between pattern steps in milliseconds
+      default: 1000
+      selector:
+        number:
+          min: 100
+          max: 5000
+          step: 100
+    duration:
+      name: Duration (seconds)
+      description: Total duration to run pattern (0 = indefinite)
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 300
+          step: 1
+
+send_command:
+  name: Send Raw Command
+  description: Send a raw command to a Lovense device
+  target:
+    entity:
+      domain: lovense_api
+  fields:
+    command:
+      name: Command
+      description: Command type (Function, Position, Pattern, Preset)
+      required: true
+      selector:
+        select:
+          options:
+            - Function
+            - Position
+            - Pattern
+            - Preset
+    parameters:
+      name: Parameters
+      description: Command parameters as JSON
+      required: true
+      selector:
+        text:
+          multiline: true
