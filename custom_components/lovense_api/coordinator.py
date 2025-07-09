@@ -13,6 +13,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     API_GET_QRCODE,
+    CMD_FUNCTION,
+    CMD_POSITION,
     CONF_CALLBACK_URL,
     CONF_DEVELOPER_TOKEN,
     CONF_USER_ID,
@@ -43,7 +45,11 @@ class LovenseCoordinator(DataUpdateCoordinator):
         
         # Device connection info (populated after QR code scan)
         self.device_info: dict[str, Any] = {}
+        self.toy_data: dict[str, Any] = {}
         self.toys: dict[str, Any] = {}
+        
+        # Stroke position storage for each toy
+        self.stroke_positions: dict[str, dict[str, int]] = {}
         
         super().__init__(
             hass,
@@ -100,8 +106,12 @@ class LovenseCoordinator(DataUpdateCoordinator):
         """Get connected toys information."""
         if not self.device_info:
             return {}
+        
+        # If we have toy data from callback, use that
+        if hasattr(self, 'toy_data') and self.toy_data:
+            return self.toy_data
             
-        # Use local API if available
+        # Otherwise try to fetch from local API
         domain = self.device_info.get("domain")
         https_port = self.device_info.get("httpsPort")
         
@@ -186,8 +196,113 @@ class LovenseCoordinator(DataUpdateCoordinator):
 
     def update_device_info(self, device_info: dict[str, Any]) -> None:
         """Update device info from callback."""
+        old_toys = set(self.data.get("toys", {}).keys()) if self.data else set()
         self.device_info = device_info
+        
+        # Store toy data from callback
+        self.toy_data = device_info.get("toys", {})
         _LOGGER.info("Device info updated: %s", device_info.get("domain"))
+        
+        # Check for new toys in the callback
+        new_toys = set(self.toy_data.keys())
+        if new_toys - old_toys:
+            _LOGGER.info("New toys detected: %s", new_toys - old_toys)
+            # Trigger platform reload for new entities
+            self._trigger_platform_reload()
         
         # Trigger immediate data refresh
         asyncio.create_task(self.async_refresh())
+    
+    def _trigger_platform_reload(self) -> None:
+        """Trigger platform reload to create entities for new devices."""
+        # Find the config entry for this coordinator
+        entry_id = None
+        for eid, coordinator in self.hass.data.get(DOMAIN, {}).items():
+            if coordinator == self:
+                entry_id = eid
+                break
+        
+        if entry_id:
+            entry = self.hass.config_entries.async_get_entry(entry_id)
+            if entry:
+                # Schedule platform reload
+                self.hass.async_create_task(self._reload_platforms(entry))
+                _LOGGER.info("Triggered platform reload for new toys")
+            else:
+                _LOGGER.error("Could not find config entry for reload")
+        else:
+            _LOGGER.error("Could not find coordinator entry_id for reload")
+    
+    async def _reload_platforms(self, entry) -> None:
+        """Reload platforms to create new entities."""
+        try:
+            from homeassistant.const import Platform
+            platforms = [Platform.LIGHT, Platform.NUMBER, Platform.SENSOR]
+            
+            # Forward entry setup for platforms to create new entities
+            await self.hass.config_entries.async_forward_entry_setups(entry, platforms)
+            _LOGGER.info("✅ Platforms reloaded - entities should appear now")
+        except Exception as err:
+            _LOGGER.error("❌ Failed to reload platforms: %s", err)
+            _LOGGER.error("Failed to reload platforms: %s", err)
+
+    async def send_unified_command(self, toy_id: str, **settings) -> None:
+        """Send a unified command that preserves all current settings."""
+        # Initialize toy settings if not exists
+        if not hasattr(self, 'toy_settings'):
+            self.toy_settings = {}
+        if toy_id not in self.toy_settings:
+            self.toy_settings[toy_id] = {
+                'vibration': 0,
+                'position': None,
+                'stroke_range': None,
+                'thrusting': 0
+            }
+        
+        # Update with new settings
+        for key, value in settings.items():
+            if key == 'stroke_range' and value is None:
+                # Clear stroke range when explicitly set to None
+                self.toy_settings[toy_id][key] = None
+            elif value is not None:
+                self.toy_settings[toy_id][key] = value
+        
+        current = self.toy_settings[toy_id]
+        
+        # Determine which command to use based on what's active
+        if current['position'] is not None:
+            # Use direct position control
+            await self.send_command_local(
+                command=CMD_POSITION,
+                value=str(int(current['position'])),
+                toy=toy_id,
+            )
+        elif current['vibration'] > 0 or current['stroke_range'] is not None or current['thrusting'] > 0:
+            # Use function command with combined actions
+            actions = []
+            
+            if current['vibration'] > 0:
+                actions.append(f"Vibrate:{current['vibration']}")
+            
+            if current['stroke_range'] is not None:
+                actions.append(f"Stroke:{current['stroke_range']}")
+            
+            if current['thrusting'] > 0:
+                actions.append(f"Thrusting:{current['thrusting']}")
+            
+            if actions:
+                action_string = ",".join(actions)
+                await self.send_command_local(
+                    command=CMD_FUNCTION,
+                    action=action_string,
+                    timeSec=0,
+                    toy=toy_id,
+                )
+        else:
+            # Stop all activity
+            await self.send_command_local(
+                command=CMD_FUNCTION,
+                action="Stop",
+                timeSec=0,
+                toy=toy_id,
+            )

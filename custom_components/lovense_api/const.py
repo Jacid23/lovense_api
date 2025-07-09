@@ -8,6 +8,7 @@ CONF_DEVELOPER_TOKEN: Final = "developer_token"
 CONF_CALLBACK_URL: Final = "callback_url"
 CONF_USER_ID: Final = "user_id"
 CONF_USER_NAME: Final = "user_name"
+CONF_STROKE_CONTROL_TYPE: Final = "stroke_control_type"
 
 # API endpoints
 API_BASE_URL: Final = "https://api.lovense-api.com/api"
@@ -33,6 +34,8 @@ VIBRATE_MIN: Final = 0
 VIBRATE_MAX: Final = 20
 POSITION_MIN: Final = 0
 POSITION_MAX: Final = 100
+TRAVEL_MIN: Final = 0
+TRAVEL_MAX: Final = 100
 
 # Update intervals
 SCAN_INTERVAL: Final = 30  # seconds
@@ -56,14 +59,6 @@ DEFAULT_ENCRYPTION_IV: Final = "967C5ABD66EBB2F8"
 
 # Callback endpoint
 CALLBACK_ENDPOINT: Final = "/api/lovense/callback"
-
-# Safe callback URL examples (choose one)
-CALLBACK_URL_EXAMPLES: Final = [
-    "https://your-tunnel.trycloudflare.com/api/lovense/callback",  # Cloudflare Tunnel
-    "https://your-instance.ui.nabu.casa/api/lovense/callback",     # Nabu Casa Cloud
-    "https://homeassistant.tailnet.ts.net:8123/api/lovense/callback",  # Tailscale
-    "http://localhost:8123/api/lovense/callback",                  # Local only (testing)
-]
 
 # HTTP headers
 DEFAULT_HEADERS: Final = {
@@ -89,3 +84,8 @@ ERROR_CODES: Final = {
     506: "Server Error - Restart Lovense Connect",
     507: "Lovense APP is Offline",
 }
+
+# Stroke control options
+STROKE_CONTROL_LIGHTS: Final = "lights"  # Voice-friendly light entities
+STROKE_CONTROL_NUMBERS: Final = "numbers"  # Precise number entities
+STROKE_CONTROL_BOTH: Final = "both"  # Both types (for advanced users)

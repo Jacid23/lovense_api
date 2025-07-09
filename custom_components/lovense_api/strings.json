@@ -3,10 +3,10 @@
     "step": {
       "user": {
         "title": "Lovense Standard API Setup",
-        "description": "⚠️ SECURITY: Never expose Home Assistant directly to the internet! Use secure callback URLs only (Cloudflare Tunnel, Nabu Casa, Tailscale).\n\nConfigure your Lovense API connection:",
+        "description": "Configure your Lovense API connection",
         "data": {
           "developer_token": "Developer Token",
-          "callback_url": "Secure Callback URL (HTTPS only)",
+          "callback_url": "Callback URL",
           "user_id": "User ID",
           "user_name": "User Name (Optional)"
         }
@@ -15,9 +15,6 @@
     "error": {
       "cannot_connect": "Failed to connect to Lovense API",
       "invalid_auth": "Invalid authentication credentials",
-      "callback_url_not_https": "Callback URL must use HTTPS for security",
-      "callback_url_localhost": "Never use localhost or 127.0.0.1 - this exposes your system to the internet!",
-      "callback_url_unsafe": "Unsafe callback URL detected. Use Cloudflare Tunnel, Nabu Casa, or Tailscale instead of direct port forwarding.",
       "unknown": "Unexpected error occurred"
     },
     "abort": {
