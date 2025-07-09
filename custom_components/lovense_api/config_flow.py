@@ -15,14 +15,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     CONF_CALLBACK_URL,
     CONF_DEVELOPER_TOKEN,
-    CONF_STROKE_CONTROL_TYPE,
     CONF_USER_ID,
     CONF_USER_NAME,
     DEFAULT_DEVELOPER_TOKEN,
     DOMAIN,
-    STROKE_CONTROL_BOTH,
-    STROKE_CONTROL_LIGHTS,
-    STROKE_CONTROL_NUMBERS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,9 +29,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_CALLBACK_URL): str,
         vol.Required(CONF_USER_ID): str,
         vol.Optional(CONF_USER_NAME, default=""): str,
-        vol.Optional(CONF_STROKE_CONTROL_TYPE, default=STROKE_CONTROL_LIGHTS): vol.In(
-            [STROKE_CONTROL_LIGHTS, STROKE_CONTROL_NUMBERS, STROKE_CONTROL_BOTH]
-        ),
     }
 )
 

@@ -19,10 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     ACTION_VIBRATE,
     CMD_FUNCTION,
-    CONF_STROKE_CONTROL_TYPE,
     DOMAIN,
-    STROKE_CONTROL_BOTH,
-    STROKE_CONTROL_LIGHTS,
     VIBRATE_MAX,
     VIBRATE_MIN,
 )
@@ -66,14 +63,12 @@ async def async_setup_entry(
         # Main vibration light for all devices
         entities.append(LovenseVibrationLight(coordinator, toy_id, toy_info))
         
-        # For Solace Pro, add stroke position lights for voice control (if enabled)
+        # For Solace Pro, add stroke position lights for voice control
         toy_type = toy_info.get("toyType", "").lower()
         toy_name = toy_info.get("name", "").lower()
         if "solace" in toy_type or "solace" in toy_name or "position" in str(toy_info.get("fullFunctionNames", [])).lower():
-            stroke_control_type = config_entry.data.get(CONF_STROKE_CONTROL_TYPE, "lights")
-            if stroke_control_type in [STROKE_CONTROL_LIGHTS, STROKE_CONTROL_BOTH]:
-                entities.append(LovenseStrokeTopLight(coordinator, toy_id, toy_info))
-                entities.append(LovenseStrokeBottomLight(coordinator, toy_id, toy_info))
+            entities.append(LovenseStrokeTopLight(coordinator, toy_id, toy_info))
+            entities.append(LovenseStrokeBottomLight(coordinator, toy_id, toy_info))
     
     if entities:
         async_add_entities(entities, True)

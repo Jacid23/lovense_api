@@ -13,12 +13,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     CMD_FUNCTION,
     CMD_POSITION,
-    CONF_STROKE_CONTROL_TYPE,
     DOMAIN,
     POSITION_MAX,
     POSITION_MIN,
-    STROKE_CONTROL_BOTH,
-    STROKE_CONTROL_NUMBERS,
     TRAVEL_MAX,
     TRAVEL_MIN,
 )
@@ -62,12 +59,9 @@ async def async_setup_entry(
         if "solace" in toy_type or "solace" in toy_name or "position" in str(toy_info.get("fullFunctionNames", [])).lower():
             # Position control (where the stroker is positioned)
             entities.append(LovensePositionNumber(coordinator, toy_id, toy_info))
-            
-            # Stroke range controls (top and bottom positions) - only if enabled
-            stroke_control_type = config_entry.data.get(CONF_STROKE_CONTROL_TYPE, "lights")
-            if stroke_control_type in [STROKE_CONTROL_NUMBERS, STROKE_CONTROL_BOTH]:
-                entities.append(LovenseStrokeTopNumber(coordinator, toy_id, toy_info))
-                entities.append(LovenseStrokeBottomNumber(coordinator, toy_id, toy_info))
+            # Stroke range controls (top and bottom positions like in the app)
+            entities.append(LovenseStrokeTopNumber(coordinator, toy_id, toy_info))
+            entities.append(LovenseStrokeBottomNumber(coordinator, toy_id, toy_info))
     
     if entities:
         async_add_entities(entities, True)

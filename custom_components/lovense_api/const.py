@@ -8,7 +8,6 @@ CONF_DEVELOPER_TOKEN: Final = "developer_token"
 CONF_CALLBACK_URL: Final = "callback_url"
 CONF_USER_ID: Final = "user_id"
 CONF_USER_NAME: Final = "user_name"
-CONF_STROKE_CONTROL_TYPE: Final = "stroke_control_type"
 
 # API endpoints
 API_BASE_URL: Final = "https://api.lovense-api.com/api"
@@ -84,8 +83,3 @@ ERROR_CODES: Final = {
     506: "Server Error - Restart Lovense Connect",
     507: "Lovense APP is Offline",
 }
-
-# Stroke control options
-STROKE_CONTROL_LIGHTS: Final = "lights"  # Voice-friendly light entities
-STROKE_CONTROL_NUMBERS: Final = "numbers"  # Precise number entities
-STROKE_CONTROL_BOTH: Final = "both"  # Both types (for advanced users)

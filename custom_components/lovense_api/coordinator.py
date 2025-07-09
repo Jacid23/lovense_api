@@ -203,11 +203,13 @@ class LovenseCoordinator(DataUpdateCoordinator):
         self.toy_data = device_info.get("toys", {})
         _LOGGER.info("Device info updated: %s", device_info.get("domain"))
         
-        # Check for new toys in the callback
+        # Check for new toys in the callback - Always trigger reload to ensure entities appear
         new_toys = set(self.toy_data.keys())
         if new_toys - old_toys:
             _LOGGER.info("New toys detected: %s", new_toys - old_toys)
-            # Trigger platform reload for new entities
+        
+        # Always trigger platform reload to ensure entities appear on any callback
+        if new_toys:
             self._trigger_platform_reload()
         
         # Trigger immediate data refresh
@@ -236,15 +238,13 @@ class LovenseCoordinator(DataUpdateCoordinator):
     async def _reload_platforms(self, entry) -> None:
         """Reload platforms to create new entities."""
         try:
-            from homeassistant.const import Platform
-            platforms = [Platform.LIGHT, Platform.NUMBER, Platform.SENSOR]
-            
-            # Forward entry setup for platforms to create new entities
-            await self.hass.config_entries.async_forward_entry_setups(entry, platforms)
-            _LOGGER.info("✅ Platforms reloaded - entities should appear now")
+            # Instead of forward_entry_setups (which fails if already setup),
+            # use async_update_listeners to trigger entity updates
+            await self.async_request_refresh()
+            self.async_update_listeners()
+            _LOGGER.info("✅ Platforms refreshed - entities should appear now")
         except Exception as err:
-            _LOGGER.error("❌ Failed to reload platforms: %s", err)
-            _LOGGER.error("Failed to reload platforms: %s", err)
+            _LOGGER.error("❌ Failed to refresh platforms: %s", err)
 
     async def send_unified_command(self, toy_id: str, **settings) -> None:
         """Send a unified command that preserves all current settings."""
